@@ -8,9 +8,9 @@
 
 import UIKit
 
-class DetailViewController: UIViewController {
+class DetailViewController: UIViewController, UITextViewDelegate {
 
-    @IBOutlet weak var detailDescriptionLabel: UILabel!
+    @IBOutlet weak var detailDescriptionLabel: UITextView!
 
 
     var detailItem: AnyObject? {
@@ -22,16 +22,24 @@ class DetailViewController: UIViewController {
 
     func configureView() {
         // Update the user interface for the detail item.
-        if let detail = self.detailItem {
-            if let label = self.detailDescriptionLabel {
-                label.text = detail.description
+        if objects.count == 0 {
+            return
+        }
+        if let label = self.detailDescriptionLabel {
+            label.text = objects[currentIndex]
+            if label.text == BLANK_NOTE {
+                label.text = ""
             }
         }
+        
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
+        detailViewController = self
+        detailDescriptionLabel.becomeFirstResponder()
+        detailDescriptionLabel.delegate = self
         self.configureView()
     }
 
@@ -39,7 +47,28 @@ class DetailViewController: UIViewController {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
-
-
+    
+    override func viewWillDisappear(animated: Bool) {
+        super.viewWillDisappear(animated)
+        if objects.count == 0 {
+            return 
+        }
+        objects[currentIndex] = detailDescriptionLabel.text
+        if detailDescriptionLabel.text == "" {
+            objects[currentIndex] = BLANK_NOTE
+        }
+        
+        saveAndUpdate()
+    }
+    
+    func saveAndUpdate() {
+        masterView?.save()
+        masterView?.tableView.reloadData()
+    }
+    
+    func textViewDidChange(textView: UITextView) {
+        objects[currentIndex] = detailDescriptionLabel.text
+        saveAndUpdate()
+    }
 }
 
